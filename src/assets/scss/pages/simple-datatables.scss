@@ -1,0 +1,279 @@
+@import "../variables";
+
+.dataTable-wrapper.no-footer .dataTable-container {
+	border-bottom: none;
+}
+
+.dataTable-selector {
+	padding: $form-select-padding-y $form-select-indicator-padding $form-select-padding-y $form-select-padding-x;
+}
+
+.dataTable-dropdown {
+	display: inline-flex;
+	align-items: center;
+}
+
+.dataTable-dropdown label {
+	white-space: nowrap;
+	margin-left: 15px;
+}
+
+.page-item.active .page-link {
+	color: white !important;
+}
+
+// from assets\extensions\simple-datatables\style.css
+
+$color_1: #333;
+$color_2: inherit;
+$background-color_1: #d9d9d9;
+
+/* PAGER */
+/* TABLE */
+.dataTable-wrapper.no-header {
+	.dataTable-container {
+		border-top: 1px solid #d9d9d9;
+	}
+}
+.dataTable-wrapper.no-footer {
+	.dataTable-container {
+		border-bottom: 1px solid #d9d9d9;
+	}
+}
+.dataTable-top {
+	padding: 8px 10px;
+	>nav {
+		&:first-child {
+			float: left;
+		}
+		&:last-child {
+			float: right;
+		}
+	}
+	>div {
+		&:first-child {
+			float: left;
+		}
+		&:last-child {
+			float: right;
+		}
+	}
+	&::after {
+		clear: both;
+		content: " ";
+		display: table;
+	}
+}
+.dataTable-bottom {
+	padding: 8px 10px;
+	>nav {
+		&:first-child {
+			float: left;
+		}
+		&:last-child {
+			float: right;
+		}
+	}
+	>div {
+		&:first-child {
+			float: left;
+		}
+		&:last-child {
+			float: right;
+		}
+	}
+	&::after {
+		clear: both;
+		content: " ";
+		display: table;
+	}
+}
+.dataTable-selector {
+	padding: 6px;
+}
+.dataTable-input {
+	padding: 6px 12px;
+}
+.dataTable-info {
+	margin: 7px 0;
+}
+.dataTable-pagination {
+	ul {
+		margin: 0;
+		padding-left: 0;
+	}
+	li {
+		list-style: none;
+		float: left;
+	}
+	a {
+		border: 1px solid transparent;
+		float: left;
+		margin-left: 2px;
+		padding: 6px 12px;
+		position: relative;
+		text-decoration: none;
+		color: $color_1;
+		&:hover {
+			background-color: $background-color_1;
+		}
+	}
+	.active {
+		a {
+			background-color: $background-color_1;
+			cursor: default;
+			&:focus {
+				background-color: $background-color_1;
+				cursor: default;
+			}
+			&:hover {
+				background-color: $background-color_1;
+				cursor: default;
+			}
+		}
+	}
+	.ellipsis {
+		a {
+			cursor: not-allowed;
+		}
+	}
+	.disabled {
+		a {
+			cursor: not-allowed;
+			cursor: not-allowed;
+			opacity: 0.4;
+			&:focus {
+				cursor: not-allowed;
+				cursor: not-allowed;
+				opacity: 0.4;
+			}
+			&:hover {
+				cursor: not-allowed;
+				cursor: not-allowed;
+				opacity: 0.4;
+			}
+		}
+	}
+	.pager {
+		a {
+			font-weight: bold;
+		}
+	}
+}
+.dataTable-table {
+	max-width: 100%;
+	width: 100%;
+	border-spacing: 0;
+	border-collapse: separate;
+	>tbody {
+		>tr {
+			>td {
+				vertical-align: top;
+				padding: 8px 10px;
+			}
+			>th {
+				vertical-align: top;
+				padding: 8px 10px;
+			}
+		}
+	}
+	>tfoot {
+		>tr {
+			>td {
+				vertical-align: top;
+				padding: 8px 10px;
+			}
+			>th {
+				vertical-align: top;
+				padding: 8px 10px;
+				vertical-align: bottom;
+				text-align: left;
+				border-top: 1px solid #d9d9d9;
+			}
+		}
+	}
+	>thead {
+		>tr {
+			>td {
+				vertical-align: top;
+				padding: 8px 10px;
+			}
+			>th {
+				vertical-align: top;
+				padding: 8px 10px;
+				vertical-align: bottom;
+				text-align: left;
+				border-bottom: 1px solid #d9d9d9;
+			}
+		}
+	}
+	th {
+		vertical-align: bottom;
+		text-align: left;
+		a {
+			text-decoration: none;
+			color: $color_2;
+		}
+	}
+}
+.dataTable-sorter {
+	display: inline-block;
+	height: 100%;
+	position: relative;
+	width: 100%;
+	&::before {
+		content: "";
+		height: 0;
+		width: 0;
+		position: absolute;
+		right: 4px;
+		border-left: 4px solid transparent;
+		border-right: 4px solid transparent;
+		opacity: 0.2;
+		border-top: 4px solid #000;
+		bottom: 0px;
+	}
+	&::after {
+		content: "";
+		height: 0;
+		width: 0;
+		position: absolute;
+		right: 4px;
+		border-left: 4px solid transparent;
+		border-right: 4px solid transparent;
+		opacity: 0.2;
+		border-bottom: 4px solid #000;
+		border-top: 4px solid transparent;
+		top: 0px;
+	}
+}
+.asc {
+	.dataTable-sorter {
+		&::after {
+			opacity: 0.6;
+		}
+	}
+}
+.desc {
+	.dataTable-sorter {
+		&::before {
+			opacity: 0.6;
+		}
+	}
+}
+.dataTables-empty {
+	text-align: center;
+}
+table.dataTable-table {
+	&:focus {
+		tr.dataTable-cursor {
+			>td {
+				&:first-child {
+					border-left: 3px blue solid;
+				}
+			}
+		}
+		outline: solid 1px black;
+		outline-offset: -1px;
+	}
+}

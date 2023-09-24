@@ -1,85 +1,118 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { ref, onMounted, onBeforeMount, watch, onBeforeUpdate } from 'vue'
+import { useUserStore } from './stores'
+
+import { auth } from '@/modules/core/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
+
+import Sidebar from './layout/Sidebar.vue'
+import Topbar from './layout/Topbar.vue'
+import { isDesktop } from './modules/core/utils/isDesktop'
+// import Toast from "./Notifications/Toast.vue";
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const sidebar = ref<boolean>(false)
+const desktop = ref<boolean>(isDesktop())
+const isOnAuthPage = ref<boolean>(false)
+const authInitialized = ref<boolean>(false)
+
+const user = useUserStore()
+
+const logout = async () => {
+  user.logout()
+  router.push({ name: 'Login' })
+  isOnAuthPage.value = true
+  console.log('Logout', isOnAuthPage.value, user.isAuthenticated)
+}
+
+onMounted(async () => {
+  await router.isReady()
+  onAuthStateChanged(auth, (usr) => {
+    authInitialized.value = true
+    if (usr) {
+      user.isAuthenticated = true
+      user.user = usr
+    } else {
+      user.isAuthenticated = false
+      user.user = null
+    }
+    if (
+      router.currentRoute.value.name === 'Register' ||
+      router.currentRoute.value.name === 'Login'
+    ) {
+      if (user.isAuthenticated) {
+        router.push({ name: 'Dashboard' })
+        isOnAuthPage.value = false
+      }
+      isOnAuthPage.value = true
+    } else {
+      isOnAuthPage.value = false
+    }
+  })
+})
 </script>
 
-<template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+<template v-if="authInitialized">
+  <template v-if="isOnAuthPage && !user.isAuthenticated">
+    <div class="container-fluid">
+      <RouterView />
     </div>
-  </header>
+  </template>
+  <template v-else>
+    <div class="layout-wrapper" id="wrapper">
+      <div
+        id="sidebar"
+        :class="[sidebar ? 'active' : 'inactive', desktop ? 'sidebar-desktop' : '']"
+      >
+        <Sidebar v-model:isDesktop="desktop" v-model:showSidebar="sidebar" />
+      </div>
 
-  <RouterView />
+      <div id="main" class="layout-navbar navbar-fixed">
+        <Topbar @toggleSidebar="sidebar = !sidebar" @logout="logout" />
+
+        <!-- Page Content -->
+        <div id="main-content">
+          <RouterView />
+        </div>
+
+        <footer>
+          <div class="footer clearfix mb-0 text-muted">
+            <div class="float-start">
+              <p>2023 &copy; Tsurayya Engineering</p>
+            </div>
+            <div class="float-end">
+              <p>
+                Crafted with
+                <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span>
+                by <a href="#">Tsurayya Engineering Team</a>
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </template>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+<style scoped lang="scss">
+#main {
+  margin-left: 250px;
+  //padding: 2rem;
+  min-height: 100vh;
+  @media screen and (max-width: 1199px) {
+    margin-left: 0;
   }
-
-  .logo {
-    margin: 0 2rem 0 0;
+  &.layout-navbar {
+    padding: 0;
+    transition: margin-left 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
+  &.layout-horizontal {
+    padding: 0;
+    margin: 0;
   }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
+  #main-content {
+    padding: 0 2rem;
   }
 }
 </style>
