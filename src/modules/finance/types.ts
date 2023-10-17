@@ -1,7 +1,7 @@
 export type Account = {
   id?: number
-  name: string
-  desc: string
+  initialname: string
+  fullname: string
   type: number
   number: string
   branch: number

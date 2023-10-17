@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 type Obj = {
-  [key: string]: number | string
+  val: number | string
+  desc: number | string
 }
 
 export type SelectProps = {
   modelValue?: string | number
-  data?: Obj
-  classes?: string
+  options?: Obj[]
   readonly?: boolean
 }
 
@@ -20,12 +20,12 @@ const props = defineProps<SelectProps>()
   <select
     v-bind="$attrs"
     class="form-control"
-    :class="classes"
-    :readonly="readonly"
     @change="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    :value="modelValue"
   >
-    <option v-for="(value, keys) in data" :value="value">
-      {{ keys }}
+    <option selected>choosee....</option>
+    <option v-for="o in options" :value="o.val">
+      {{ o.desc }}
     </option>
   </select>
 </template>

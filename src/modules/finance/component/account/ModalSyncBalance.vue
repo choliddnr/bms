@@ -19,7 +19,7 @@ const schema = object({
 const { meta, errors, defineInputBinds, setFieldValue, handleSubmit, resetForm } = useForm({
   validationSchema: schema,
 })
-
+const sel = defineInputBinds('sel')
 const currentBalance = defineInputBinds('currentBalance')
 const actualBalance = defineInputBinds('actualBalance')
 const desc = defineInputBinds('desc')
@@ -47,6 +47,7 @@ onMounted(() => {
     emit('hiddenModal')
     resetForm()
   })
+  setFieldValue('sel', 2)
 })
 const submit = handleSubmit((values) => {
   accounts.syncBalance({
@@ -93,6 +94,15 @@ watch(actualBalance, (newVal) => {
 
         <form class="">
           <div class="modal-body">
+            <label for="currentBalance">select Balance: </label>
+            <div class="input-group">
+              <select name="sel" id="sel" class="form-control" v-bind="sel">
+                <option>chosee</option>
+                <option value="1">satu</option>
+                <option value="2">dua</option>
+                <option value="3">tiga</option>
+              </select>
+            </div>
             <label for="currentBalance">Current Balance: </label>
             <div class="input-group">
               <span class="input-group-text" id="basic-addon1">Rp. </span>

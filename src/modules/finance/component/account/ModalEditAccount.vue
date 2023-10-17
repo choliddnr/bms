@@ -1,84 +1,184 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, ref } from 'vue'
 import { Modal } from 'bootstrap'
 import { useFinanceAccountStore } from '../../stores'
 import type { Account } from '../../types'
-
 import { useForm } from 'vee-validate'
-import { object, string } from 'yup'
 
+import { object, string } from 'yup'
 import { toCurrency, toNumber } from '@/modules/core/utils/formatNumberCurrentcy'
+import Form from '@/modules/core/components/form/Form.vue'
+import Toast from '@/modules/core/notification/Toast.vue'
+
+import type {
+  InputElement,
+  TextareaElement,
+  SelectElement,
+  Fields,
+} from '@/modules/core/components/form/types'
 
 const account = useFinanceAccountStore()
 
-const schema = object({
-  name: string().required().min(2).max(4),
-  desc: string().required().min(10).max(26),
-  number: string().required().min(5).max(20),
-  balance: string().required().min(4),
-  type: string().required().max(2),
-  branch: string().required().max(2),
-  isActive: string().required(),
-})
+import financeAccountToSelectOptions from '@/modules/core/utils'
+const accountSelectOption = financeAccountToSelectOptions(account.accounts)
 
-const { meta, errors, defineInputBinds, setFieldValue, handleSubmit, resetForm } = useForm({
-  validationSchema: schema,
-})
+/* 
+  get branch
+*/
+import { useBranchStore } from '@/stores/branch'
 
-const name = defineInputBinds('name')
-const desc = defineInputBinds('desc')
-const number = defineInputBinds('number')
-const balance = defineInputBinds('balance')
-const type = defineInputBinds('type')
-const branch = defineInputBinds('branch')
-const isActive = defineInputBinds('isActive')
+const branch = useBranchStore()
+
+console.log(account.accounts, branch.branchs)
+
+/*
+useCounterStore test
+*/
+
+import { useCounterStore } from '@/stores/counter'
+const counter = useCounterStore()
+const unsubscribe = branch.$onAction(
+  ({
+    name, // name of the action
+    store, // store instance, same as `someStore`
+    args, // array of parameters passed to the action
+    after, // hook after the action returns or resolves
+    onError, // hook if the action throws or rejects
+  }) => {
+    // a shared variable for this specific action call
+    const startTime = Date.now()
+    // this will trigger before an action on `store` is executed
+    console.log(`Start "${name}" with params [${args.join(', ')}].`)
+
+    // this will trigger if the action succeeds and after it has fully run.
+    // it waits for any returned promised
+    after((result) => {
+      console.log(`Finished "${name}" after ${Date.now() - startTime}ms.\nResult: ${result}.`)
+    })
+
+    // this will trigger if the action throws or returns a promise that rejects
+    onError((error) => {
+      console.warn(`Failed "${name}" after ${Date.now() - startTime}ms.\nError: ${error}.`)
+    })
+  },
+)
+
+// manually remove the listener
+// unsubscribe()
 
 let showModal: Function
-let accounts: Account
+let hideModal: Function
+let acc: Account
+acc = account.accounts.find((item) => item.id === prop.accountId)!
+console.log('acc ? ', acc.type, acc.branch)
+
+const formFields = <Fields>{
+  initialname: <InputElement>{
+    label: 'Initial Nama',
+    elm: 'input',
+    colClass: 'col-12',
+    initialValue: acc.initialname,
+  },
+  fullname: <InputElement>{
+    label: 'Full Name',
+    elm: 'input',
+    colClass: 'col-12',
+    initialValue: acc.fullname,
+  },
+  balance: <InputElement>{
+    elm: 'input',
+    label: 'Balance',
+    colClass: 'col-12',
+    isCurrency: true,
+    readonly: true,
+    inputPrefix: 'Rp. ',
+    initialValue: acc.balance,
+  },
+  number: <InputElement>{
+    elm: 'input',
+    label: 'Account Number',
+    colClass: 'col-12',
+    initialValue: acc.number,
+  },
+  type: <SelectElement>{
+    elm: 'select',
+    label: 'Account Type',
+    colClass: 'col-12',
+    options: accountSelectOption,
+    initialValue: acc.type,
+  },
+  branch: <SelectElement>{
+    elm: 'select',
+    label: 'Account Type',
+    colClass: 'col-12',
+    options: accountSelectOption,
+    initialValue: acc.branch,
+  },
+}
+
+const validationSchema = object({
+  initialname: string().required().min(3).max(4),
+  fullnmae: string().required().max(25),
+  balance: string().required(),
+  number: string().required(),
+  type: string().required(),
+  branch: string().required(),
+})
 
 const prop = defineProps<{
   accountId: number
-  isOpen: boolean
+  modelValue: boolean
 }>()
-const emit = defineEmits(['hiddenModal'])
+
+// const show = ref<boolean>()
+const save = (data: any) => {
+  console.log(data)
+  hideModal()
+  // show.value = true
+  // if (data.from && data.to && data.nominal && data.desc) {
+  //   let result = ref<Account>({
+  //     id: prop.accountId,
+  //     name: data.name,
+  //     desc: data.desc,
+  //     balance: data.balance,
+  //     number: data.number,
+  //     branch: data.branch,
+  //     type: data.type,
+  //     isActive: true,
+  //   })
+  //   account.editAccount(result.value)
+  // } else {
+  //   console.log('something wrong')
+  // }
+}
+
+const emit = defineEmits(['update:modelValue'])
 onMounted(() => {
   const modalEl = document.getElementById('modaleditAccount') as Element
   let modal: Modal = new window.bootstrap.Modal(modalEl, { backdrop: 'static' })
   showModal = () => {
     modal?.show()
-    accounts = account.accounts.find((item) => item.id === prop.accountId)!
-    setFieldValue('name', accounts.name, false)
-    setFieldValue('desc', accounts.desc, false)
-    setFieldValue('number', accounts.number, false)
-    setFieldValue('balance', toCurrency(accounts.balance.toString()), false)
-    setFieldValue('type', accounts.type, false)
-    setFieldValue('branch', accounts.branch, false)
-    setFieldValue('isActive', accounts.isActive, false)
+    // setFieldValue('name', accounts.name, false)
+    // setFieldValue('desc', accounts.desc, false)
+    // setFieldValue('number', accounts.number, false)
+    // setFieldValue('balance', toCurrency(accounts.balance.toString()), false)
+    // setFieldValue('type', accounts.type, false)
+    // setFieldValue('branch', accounts.branch, false)
+    // setFieldValue('isActive', accounts.isActive, false)
+  }
+  hideModal = () => {
+    modal?.hide()
+    // emit('update:modelValue', false)
   }
   if (prop.accountId) {
     showModal()
   }
   modalEl.addEventListener('hidden.bs.modal', () => {
-    emit('hiddenModal')
-    resetForm()
+    // emit('hiddenModal')
+    // resetForm()
+    console.log('modal hidden')
+    emit('update:modelValue', false)
   })
-})
-const submit = handleSubmit((values) => {
-  // accounts.editAccount()
-  let data = values
-  data.id = prop.accountId
-  console.log(data)
-})
-watch(
-  () => prop.isOpen,
-  (newVal) => {
-    if (newVal) {
-      showModal()
-    }
-  },
-)
-watch(name, () => {
-  console.log('name', name, name.value.value)
 })
 </script>
 
@@ -94,123 +194,34 @@ watch(name, () => {
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title" id="editAccount">Edit Account Form</h4>
+          <h4 class="modal-title" id="editAccount">Edit Account</h4>
           <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
             <i data-feather="x"></i>
           </button>
+          <button type="button" class="btn-primary" @click="branch.inc">c inc</button>
         </div>
-
-        <form class="">
-          <div class="modal-body">
-            <label for="currentBalance">Initial Name: </label>
-            <div class="input-group">
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Initial Name"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-                v-bind="name"
-              />
-            </div>
-            <div class="invalid-feedback">{{ errors.actualBalance }}</div>
-
-            <label for="currentBalance">Full Name: </label>
-            <div class="input-group">
-              <input
-                id="desc"
-                name="desc"
-                type="text"
-                placeholder="Full Name"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-                v-bind="desc"
-              />
-            </div>
-            <div class="invalid-feedback">{{ errors.actualBalance }}</div>
-
-            <label for="currentBalance">Balance: </label>
-            <code> Change balance only on Sync Balance menu</code>
-            <div class="input-group">
-              <input
-                id="balance"
-                name="balance"
-                type="text"
-                placeholder="Balance"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-                v-bind="balance"
-                readonly
-              />
-            </div>
-
-            <label for="currentBalance">Account Number: </label>
-            <div class="input-group">
-              <input
-                id="number"
-                name="number"
-                type="text"
-                placeholder="number"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-                v-bind="number"
-              />
-              <div class="invalid-feedback">{{ errors.actualBalance }}</div>
-            </div>
-
-            <label for="currentBalance">Account Type: </label>
-            <div class="input-group">
-              <select
-                name="type"
-                id="type"
-                v-bind="type"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-              >
-                <option v-for="(typ, index) in account.accountInfo?.types" :value="index">
-                  {{ typ }}
-                </option>
-              </select>
-            </div>
-
-            <label for="currentBalance">Branch: </label>
-            <div class="input-group">
-              <select
-                name="branch"
-                id="branch"
-                v-bind="branch"
-                class="form-control"
-                :class="{ 'is-invalid': errors.actualBalance }"
-              >
-                <option v-for="(brnch, index) in account.accountInfo?.branch" :value="index">
-                  {{ brnch }}
-                </option>
-              </select>
-
-              <input type="checkbox" id="checkbox" v-model="isActive" />
-              <label for="isActive">Activate? </label>
-            </div>
-
-            <!-- <code>Describe why recorded balance is different with actual balance!</code> -->
-            <!-- <pre>values: {{ values }}</pre>
-            <pre>errors: {{ errors }}</pre> -->
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
-              <i class="bx bx-x d-block d-sm-none"></i>
-              <span class="d-none d-sm-block">Cancel</span>
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary ms-1"
-              :class="[errors && !meta.valid ? 'disabled' : '']"
-            >
-              <i class="bx bx-check d-block d-sm-none"></i>
-              <span class="d-none d-sm-block">Submit</span>
-            </button>
-          </div>
-        </form>
+        <div class="modal-body">
+          <Form :fields="formFields" :schema="validationSchema" @submit="save">
+            <template #button="{ isValid, submitBtn }">
+              <div class="row">
+                <div class="col-auto col-ms-12 ms-auto mt-2">
+                  <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">Cancel</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary ms-2"
+                    :class="[!isValid ? 'disabled' : '']"
+                    @click="submitBtn"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </template>
+          </Form>
+        </div>
       </div>
     </div>
   </div>

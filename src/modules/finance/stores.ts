@@ -72,8 +72,8 @@ export const useFinanceAccountStore = defineStore(accountCollName.value, () => {
         } else {
           res.push({
             id: parseInt(doc.id),
-            name: doc.data().name,
-            desc: doc.data().desc,
+            initialname: doc.data().initialname,
+            fullname: doc.data().fullname,
             type: parseInt(doc.data().type),
             number: doc.data().number,
             branch: parseInt(doc.data().branch),
@@ -109,9 +109,13 @@ export const useFinanceAccountStore = defineStore(accountCollName.value, () => {
   const transactions = useTransactionStore()
 
   const tba = (data: TransactionTBA) => {
-    substractBalance(data.from, data.amount)
-    addbalance(data.to, data.amount)
-    transactions.newTransaction(data)
+    try {
+      substractBalance(data.from, data.amount)
+      addbalance(data.to, data.amount)
+      transactions.newTransaction(data)
+    } catch (error) {
+      return error
+    }
   }
 
   const income = (from: number, amount: number) => {

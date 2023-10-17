@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/modules/core/firebase'
-import { Form } from '@/modules/core/components/form'
+import TestForm from '@/modules/core/components/form/TestForm.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,7 +55,7 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      component: Form,
+      component: TestForm,
       meta: { icon: 'bi-wallet-fill' },
     },
     {

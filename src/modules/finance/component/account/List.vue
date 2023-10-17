@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from 'vue'
+import { defineAsyncComponent, ref, watch } from 'vue'
 import { useFinanceAccountStore } from '../../stores'
 import { formatIDR } from '@/modules/core/utils/currencyFormatter'
 
@@ -12,6 +12,8 @@ const loadModalSyncBalance = ref<boolean>(false)
 const loadModalEditAccount = ref<boolean>(false)
 const isModalSyncBalanceOpen = ref<boolean>(false)
 const isModalEditAccountOpen = ref<boolean>(false)
+
+const showModalEditAccount = ref<boolean>(false)
 const account_Id = ref<number>(0)
 const ModalSyncBalance = defineAsyncComponent(() => import('./ModalSyncBalance.vue'))
 const ModalEditAccount = defineAsyncComponent(() => import('./ModalEditAccount.vue'))
@@ -24,22 +26,24 @@ const syncBalance = (id: number) => {
 
 const editAccount = (id: number) => {
   loadModalEditAccount.value = true
-  isModalEditAccountOpen.value = true
+  // isModalEditAccountOpen.value = true
+  showModalEditAccount.value = true
   account_Id.value = id
 }
 
 const hiddenModal = () => {
-  isModalSyncBalanceOpen.value = false
-  isModalEditAccountOpen.value = false
+  // showModalEditAccount.value = false
+  // isModalSyncBalanceOpen.value = false
+  // isModalEditAccountOpen.value = false
 }
 </script>
 
 <template>
   <div class="row">
-    <div class="col-6 col-lg-4 col-md-6" v-for="a in account.accounts">
+    <div class="col-12 col-lg-4 col-md-6" v-for="a in account.accounts">
       <div class="card" v-if="a.id !== 0">
         <div class="card-header d-flex justify-content-between pb-0">
-          <h6>{{ a.desc }}</h6>
+          <h6>{{ a.fullname }}</h6>
           <div class="dropdown">
             <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-three-dots-vertical"></i>
@@ -66,7 +70,7 @@ const hiddenModal = () => {
           <div class="row">
             <div class="d-flex align-items-center">
               <div class="stats-icon blue mb-2">
-                <b>{{ a.name }}</b>
+                <b>{{ a.initialname }}</b>
               </div>
               <div class="ms-3 name">
                 <h6 class="font-extrabold mb-0">{{ formatIDR(a.balance) }}</h6>
@@ -92,13 +96,11 @@ const hiddenModal = () => {
     />
   </section>
 
-  <section v-if="loadModalEditAccount">
-    <ModalEditAccount
-      :accountId="account_Id"
-      @hiddenModal="hiddenModal"
-      :isOpen="isModalEditAccountOpen"
-    />
-  </section>
+  <ModalEditAccount
+    v-if="showModalEditAccount"
+    :accountId="account_Id"
+    v-model="showModalEditAccount"
+  />
 </template>
 
 <style>

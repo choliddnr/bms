@@ -1,35 +1,73 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useCashAccountStore } from '../../stores'
+import { useFinanceAccountStore } from '../../stores'
 import type { TransactionTBA } from '../../types'
-import { toCurrency, toNumber } from '@/modules/core/utils/formatNumberCurrentcy'
+import { toNumber } from '@/modules/core/utils/formatNumberCurrentcy'
+import Form from '@/modules/core/components/form/Form.vue'
+import Toast from '@/modules/core/notification/Toast.vue'
 
-const cashAccount = useCashAccountStore()
+import type {
+  InputElement,
+  TextareaElement,
+  SelectElement,
+  Fields,
+} from '@/modules/core/components/form/types'
+import { object, string } from 'yup'
 
-const from = ref<number>()
-const to = ref<number>()
-const nominal = ref<string>()
-const desc = ref<string>()
+const accounts = useFinanceAccountStore()
 
-watch(nominal, () => {
-  if (!nominal.value) {
-    return
-  }
-  nominal.value = toCurrency(nominal.value!)
+import financeAccountToSelectOptions from '@/modules/core/utils'
+const accountSelectOption = financeAccountToSelectOptions(accounts.accounts)
+
+const formFields = <Fields>{
+  from: <SelectElement>{
+    elm: 'select',
+    label: 'From Account',
+    colClass: 'col-md-4',
+    options: accountSelectOption,
+  },
+  to: <SelectElement>{
+    elm: 'select',
+    label: 'To Account',
+    colClass: 'col-md-4',
+    options: accountSelectOption,
+  },
+  nominal: <InputElement>{
+    label: 'Nominal',
+    elm: 'input',
+    type: 'text',
+    isCurrency: true,
+    colClass: 'col-md-4',
+    inputPrefix: 'Rp. ',
+  },
+  desc: <TextareaElement>{
+    elm: 'textarea',
+    rows: 3,
+    label: 'Description',
+  },
+}
+
+const validationSchema = object({
+  from: string().required(),
+  to: string().required(),
+  nominal: string().required().min(4),
+  desc: string().required().min(10).max(30),
 })
 
-const save = (e: any) => {
-  e.preventDefault()
-  if (from.value && to.value && nominal.value && desc.value) {
-    let data = ref<TransactionTBA>({
+const show = ref<boolean>()
+const save = (data: any) => {
+  console.log(data)
+  show.value = true
+  if (data.from && data.to && data.nominal && data.desc) {
+    let result = ref<TransactionTBA>({
       datetime: new Date().getTime(),
-      from: from.value,
-      to: to.value,
-      amount: toNumber(nominal.value),
-      desc: desc.value,
+      from: data.from,
+      to: data.to,
+      amount: toNumber(data.nominal),
+      desc: data.desc,
       type: 'tba',
     })
-    cashAccount.tba(data.value)
+    accounts.tba(result.value)
   } else {
     console.log('something wrong')
   }
@@ -37,66 +75,18 @@ const save = (e: any) => {
 </script>
 
 <template>
-  <!-- // Basic multiple Column Form section start -->
+  <Toast v-if="show" type="success" message="testing toast" title="cek" v-model="show" />
   <section id="multiple-column-form">
     <div class="row match-height">
       <div class="col-12">
         <div class="card">
           <div class="card-content">
             <div class="card-body">
-              <form class="form">
-                <div class="row">
-                  <div class="col-md-4 col-12">
-                    <div class="form-group">
-                      <label for="from">From</label>
-                      <select class="form-select" aria-label="from" v-model="from">
-                        <option v-for="ba in cashAccount.cashAccounts" :value="ba.id">
-                          {{ ba.name }} - {{ ba.desc }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-4 col-12">
-                    <div class="form-group">
-                      <label for="to">To</label>
-                      <select class="form-select" aria-label="to" v-model="to">
-                        <option v-for="ba in cashAccount.cashAccounts" :value="ba.id">
-                          {{ ba.name }} - {{ ba.desc }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-4 col-12">
-                    <div class="form-group">
-                      <label for="nominal">Nominal</label>
-                      <input
-                        type="text"
-                        id="nominal"
-                        class="form-control"
-                        placeholder="Nominal"
-                        name="nominal"
-                        v-model="nominal"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-12 col-12">
-                    <div class="form-group">
-                      <label for="desc">Description</label>
-                      <textarea class="form-control" rows="2" v-model="desc"></textarea>
-                    </div>
-                  </div>
-                  <p>{{ nominal }}</p>
-                  <div class="col-12 d-flex justify-content-end">
-                    <button @click="save" class="btn btn-primary me-1 mb-1">Submit</button>
-                    <button type="reset" class="btn btn-light-secondary me-1 mb-1">Reset</button>
-                  </div>
-                </div>
-              </form>
+              <Form :fields="formFields" :schema="validationSchema" @submit="save"></Form>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
-  <!-- // Basic multiple Column Form section end -->
 </template>

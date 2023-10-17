@@ -1,5 +1,6 @@
 .card {
-  margin-bottom: 2.2rem;
+  margin-top: 1.1rem;
+  margin-bottom: 1.1rem;
   border: none;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
   &.card-statistic {
@@ -62,6 +63,9 @@
     .card-title {
       color: #fff;
     }
+  }
+  @media (max-width: 576px) {
+    border-radius: 0;
   }
 }
 .pricing {
